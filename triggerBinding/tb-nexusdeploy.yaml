@@ -1,0 +1,13 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: tb-nexusdeploy
+  namespace: tekton
+spec:
+  params:
+  - name: repositoryName
+    value: $(body.repositoryName)
+  - name: componentName
+    value: $(body.component.name)
+  - name: version
+    value: $(body.component.version)

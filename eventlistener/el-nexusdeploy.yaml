@@ -1,0 +1,17 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: el-nexusdeploy
+  namespace: tekton
+spec:
+  serviceAccountName: tekton-triggers-sa
+  triggers:
+    - name: nexus-update
+      interceptors:
+        - cel:
+            filter: | 
+              body.action == "UPDATED"
+      bindings:
+      - ref: tb-nexusdeploy
+      template:
+        ref: tt-nexusdeploy

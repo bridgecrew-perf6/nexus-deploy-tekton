@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pipeline-pv
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteMany
+  storageClassName: local-storage
+  persistentVolumeReclaimPolicy: Delete
+  hostPath:
+    path: /pipeline-pv

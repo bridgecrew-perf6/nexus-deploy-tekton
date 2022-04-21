@@ -1,0 +1,97 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: pl-nexusdeploy
+  namespace: tekton
+spec:
+  workspaces:
+    - name: wget-workspace
+    - name: kaniko-conf
+  params:
+    - name: repositoryName
+      type: string
+      default: test-hosted
+    - name: componentName
+      type: string
+    - name: version
+      type: string
+  tasks:
+    - name: artifact-download
+      params:
+        - name: url
+          value: "http://192.168.9.194:32001/repository/$(params.repositoryName)/com/example/$(params.componentName)/0.0.1-SNAPSHOT/echo_maven-$(params.version).jar"
+        - name: diroptions
+          value:
+            - "-P"
+        - name: filename
+          value: "artifact.jar"
+      taskRef:
+        kind: Task
+        name: wget
+      workspaces:
+        - name: wget-workspace
+          workspace: wget-workspace
+    - name: image-build-push
+      runAfter:
+        - artifact-download
+      params:
+        - name: IMAGE
+          value: 192.168.9.12:5000/v2/nexus/webhook-test
+        - name: pathToDockerFile
+          value: /kaniko/conf/Dockerfile
+        - name: IMAGE_TAG
+          value: latest
+      taskRef:
+        kind: Task
+        name: kaniko
+      workspaces:
+        - name: kaniko-conf
+          workspace: kaniko-conf
+        - name: wget-workspace
+          workspace: wget-workspace
+    - name: deploy-run
+      runAfter: 
+        - image-build-push
+      params:
+        - name: action
+          value: create
+        - name: success-condition
+          value: status.phase == Running
+        - name: failure-condition
+          value: status.phase in (Failed, Error)
+        - name: output
+          value: |
+            - name: job-name
+              valueFrom: '{.metadata.name}'
+            - name: job-namespace
+              valueFrom: '{.metadata.namespace}'
+        - name: set-ownerreference
+          value: "true"
+        - name: manifest
+          value: |
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              generateName: echomvn-pod
+            spec:
+              selector:
+                matchLabels:
+                  app: myapp
+              replicas: 1
+              template:
+                metadata:
+                  labels:
+                    app: myapp
+                spec:
+                  containers:
+                  - name: nexus-test-container
+                #image: docker
+                #command: ['sh', '-c', 'echo Hello && sleep 30']
+                    image: 192.168.9.12:5000/v2/nexus/image-push-test:latest
+                    ports:
+                    - containerPort: 80
+      taskRef:
+        kind: Task
+        name: kubectl-deploy-pod
+        
+

@@ -1,0 +1,38 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: tt-nexusdeploy
+  namespace: tekton
+spec:
+  params:
+    - name: repositoryName
+      description: nexus regpository name
+      default: test-hosted
+    - name: componentName
+      description: name of component
+    - name: version
+      description: version of component
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: tekton-pipeline-run-
+        namespace: tekton
+      spec:
+        pipelineRef:
+          name: pl-nexusdeploy
+        params:
+          - name: repositoryName
+            value: $(tt.params.repositoryName)
+          - name: componentName
+            value: $(tt.params.componentName)
+          - name: version
+            value: $(tt.params.version) 
+        workspaces:
+          - name: wget-workspace
+            persistentvolumeclaim:
+              claimName: pipeline-pvc
+          - name: kaniko-conf
+            configmap:
+              name: kaniko-config
+
