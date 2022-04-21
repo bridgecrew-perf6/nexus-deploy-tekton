@@ -1,8 +1,22 @@
 # nexus-deploy-tekton
 
+## Description
+Tekton pipeline을 사용하여 Nexus repository 에 존재하는 artifact (jar 파일) 의 버전 업데이트 시 서비스 재배포까지의 자동화 환경을 구축하였습니다. 
+
+서비스가 재배포되는 과정들을 Tekton의 Task로 작성하여 Pipeline을 구성하였습니다.
+
+<Pipeline 구성>
+
+- Task_1 : wget 으로 Nexus repository 에 존재하는 UPDATED artifact 다운
+- Task_2 : kaniko 를 사용하여 image build 및 image registry 로 push
+- Task_3 : kubectl 명령어를 사용하여, application deploy 
+
+ 또한, Tekton의 EventListener를 활용하여 Webhook 이벤트 발생 시 (업데이트 되어진 jar 파일이 존재할 때) 해당 Pipeline이 실행되도록 설계하였습니다.
+
+
 ## 참조 사이트
 - Event Triggers [https://tekton.dev/vault/triggers-v0.7.0/]
-- Pipeline 구성 task templates
+- pipeline 구성 task templates
     - Task_1 : wget [https://hub.tekton.dev/tekton/task/wget]
     - Task_2 : kaniko [https://hub.tekton.dev/tekton/task/kaniko]
     - Task_3 : kubectl-deploy-pod [https://hub.tekton.dev/tekton/task/kubectl-deploy-pod]
@@ -10,8 +24,7 @@
 
 ## 테스트 전 확인 사항
 1. Nexus 접속 페이지 확인 및 로그인 진행 
-    - http://192.168.9.194:32001 에 접속하여 로그인 진행 (아이디: admin / 비밀번호: admin)
-    
+    - http://192.168.9.194:32001 에 접속하여 nexus repository 로그인 진행 (id: admin / password: admin)
 2. Spring 소스코드 준비
     - Sample spring code
         ```
@@ -46,37 +59,68 @@
     - Nexus 접속 페이지에서 webhook이 등록되어있는지 확인
     
         ![image](/figure/nexus_page.png)
-    - 해당 webhook 클릭 후 settings 이 그림과 같이 되어있는지 확인 (repository 이름, component, URl 확인)
+    - 해당 webhook 클릭 후 settings 확인 (repository 이름, component, URl 확인)
 
         ![image](/figure/nexus_webhook.png)
 
 
 ## 테스트 과정
-1. apply tasks
-
+1. apply pv/pvc, role/rolebinding, serviceaccount, ingress
+    ```
+    kubectl apply -f ./pv-pvc/pipeline-pv.yaml
+    kubectl apply -f ./pv-pvc/pipeline-pvc.yaml
+    kubectl apply -f ./role-rolebinding/trigger-role-rolebinding.yaml
+    kubectl apply -f ./trigger-sa/tekton-trigger-sa.yaml
+    kubectl apply -f ./ingress/ingress-nexusdeploy.yaml
+    ```
+2. apply tasks
     ```
     kubectl apply -f ./task/wget.yaml
     kubectl apply -f ./task/kaniko.yaml
     kubectl apply -f ./task/kubectl-deploy.yaml
     ```
-2. apply pipeline
+3. apply pipeline
     ```
-    kubectl apply -f ./pipeline/pl-nexusDeploy.yaml
+    kubectl apply -f ./pipeline/pl-nexusdeploy.yaml
     ```
-3. apply trigger binding
+4. apply trigger binding
     ```
-    kubectl apply -f ./triggerBinding/tb-nexusDeploy.yaml
+    kubectl apply -f ./triggerBinding/tb-nexusdeploy.yaml
     ```
-4. apply trigger template
+5. apply trigger template
     ```
-    kubectl apply -f ./triggerTemplate/tt-nexusDeploy.yaml
+    kubectl apply -f ./triggerTemplate/tt-nexusdeploy.yaml
     ```
-5. apply eventListener
+6. apply eventListener
     ```
-    kubectl apply -f ./eventlistener/el-nexusDeploy.yaml
+    kubectl apply -f ./eventlistener/el-nexusdeploy.yaml
     ```
-6. apply svc
+7. apply svc
     ```
-    kubectl apply -f ./svc/svc-nexusDeploy.yaml
+    kubectl apply -f ./svc/svc-nexusdeploy.yaml
     ```
 ## 테스트 실행 결과
+1. Eventlistener pod 생성 확인
+
+    ![image](/figure/kubectl_pod_before_deploy.png)
+
+2. Spring 소스코드 mvn deploy 진행
+    - Nexus repository 에서 deploy 확인 (http://192.168.9.194:32001/#browse/browse:test-hosted)
+
+3. Pipeline run 동작 확인
+
+    ![image](/figure/kubectl_pod_after_deploy.png)
+
+4. Pipeline 을 통해 배포 된 application 동작 확인
+
+    ![image](/figure/kubectl_check_createdApp.png)
+    ![image](/figure/kubectl_logs_echomaven.png)
+
+5. Pipeline 실행 결과
+    - Nodeport 확인 (그림에서는 30564)
+
+        ![image](/figure/kubectl_get_svc.png)
+
+    - 웹에서 192.168.9.194:{nodeport}/echo/hello 로 접속
+
+        ![image](/figure/result.png)
