@@ -12,15 +12,19 @@ Tekton pipeline을 사용하여 Nexus repository 에 존재하는 artifact (jar 
 - Task_3 : kubectl 명령어를 사용하여, application deploy 
 
  또한, Tekton의 EventListener를 활용하여 Webhook 이벤트 발생 시 (업데이트 되어진 jar 파일이 존재할 때) 해당 Pipeline이 실행되도록 설계하였습니다.
+ 
+ EventListener 는 Nexus webhook event 를 받아 처리하는 api server 로서, 들어오는 event 를 필터링 하여 Trigger Binding 과 Trigger Template 을 호출합니다.
+ - Trigger Binding : EventListener로부터 받은 데이터를 Trigger Template의 파라미터와 매핑
+ - Trigger Template : Trigger Binding/EventListener 로부터 어떤 파라미터를 받을건지, 어떤 파이프라인을 실행시킬건지 정의 
 
 
 ## 참조 사이트
-- Event Triggers [https://tekton.dev/vault/triggers-v0.7.0/]
+- Event Triggers : https://tekton.dev/vault/triggers-v0.7.0/
 - pipeline 구성 task templates
     - Task_1 : wget [https://hub.tekton.dev/tekton/task/wget]
     - Task_2 : kaniko [https://hub.tekton.dev/tekton/task/kaniko]
     - Task_3 : kubectl-deploy-pod [https://hub.tekton.dev/tekton/task/kubectl-deploy-pod]
-- EventListener logs 확인 방법 [https://tekton.dev/vault/triggers-v0.12.1/debugging-eventlisteners/]
+- EventListener logs 확인 방법 : https://tekton.dev/vault/triggers-v0.12.1/debugging-eventlisteners/
 
 ## 테스트 전 확인 사항
 1. Nexus 접속 페이지 확인 및 로그인 진행 
