@@ -1,22 +1,19 @@
 # nexus-deploy-tekton
 
 ## Description
-Tekton pipeline을 사용하여 Nexus repository 에 존재하는 artifact (jar 파일) 의 버전 업데이트 시 서비스 재배포까지의 자동화 환경을 구축하였습니다. 
+Tekton pipeline을 사용하여 Nexus repository에 존재하는 artifact (jar 파일)의 버전 업데이트 시 서비스 재배포까지의 자동화 환경을 구축하였습니다. 
 
 서비스가 재배포되는 과정들을 Tekton의 Task로 작성하여 Pipeline을 구성하였습니다.
 
 <Pipeline 구성>
-
-- Task_1 : wget 으로 Nexus repository 에 존재하는 UPDATED artifact 다운
-- Task_2 : kaniko 를 사용하여 image build 및 image registry 로 push
+- Task_1 : wget 으로 Nexus repository에 존재하는 UPDATED artifact 다운
+- Task_2 : kaniko 를 사용하여 image build 및 image registry로 push
 - Task_3 : kubectl 명령어를 사용하여, application deploy 
 
- 또한, Tekton의 EventListener를 활용하여 Webhook 이벤트 발생 시 (업데이트 되어진 jar 파일이 존재할 때) 해당 Pipeline이 실행되도록 설계하였습니다.
+ EventListener 는 Nexus webhook event를 받아 처리하는 api server 역할로서, 들어오는 event를 필터링하여 Trigger Binding과 Trigger Template를 호출합니다.
  
- EventListener 는 Nexus webhook event 를 받아 처리하는 api server 로서, 들어오는 event 를 필터링 하여 Trigger Binding 과 Trigger Template 을 호출합니다.
- - Trigger Binding : EventListener로부터 받은 데이터를 Trigger Template의 파라미터와 매핑
- - Trigger Template : Trigger Binding/EventListener 로부터 어떤 파라미터를 받을건지, 어떤 파이프라인을 실행시킬건지 정의 
-
+ - Trigger Binding : EventListener로 부터 받은 데이터를 Trigger Template의 파라미터와 매핑
+ - Trigger Template : Trigger Binding/EventListener로 부터 어떤 파라미터를 받을 건지, 어떤 파이프라인을 실행시킬 건지 정의 
 
 ## 참조 사이트
 - Event Triggers : https://tekton.dev/vault/triggers-v0.7.0/
