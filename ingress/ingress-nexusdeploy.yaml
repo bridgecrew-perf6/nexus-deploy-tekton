@@ -10,7 +10,7 @@ spec:
   rules:
     - http:
         paths:
-          - path: /webhooktest 
+          - path: /{PATH} 
             pathType: Prefix
             backend:
               service:
