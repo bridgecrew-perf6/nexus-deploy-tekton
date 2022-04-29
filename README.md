@@ -126,3 +126,5 @@ Tekton pipeline을 사용하여 Nexus repository에 존재하는 artifact (jar �
         ![image](/figure/kubectl_get_svc.png)
 
     - 웹에서 {IP_ADDRESS}:{nodeport}/echo/hello 로 접속
+    
+        ![image](/figure/result.png)
