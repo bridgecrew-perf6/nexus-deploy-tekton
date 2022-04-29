@@ -25,7 +25,7 @@ Tekton pipeline을 사용하여 Nexus repository에 존재하는 artifact (jar �
 
 ## 테스트 전 확인 사항
 1. Nexus 접속 페이지 확인 및 로그인 진행 
-    - http://192.168.9.194:32001 에 접속하여 nexus repository 로그인 진행 (id: admin / password: admin)
+    - NexusURL로 접속하여 로그인 진행
 2. Spring 소스코드 준비
     - Sample spring code
         ```
@@ -39,7 +39,7 @@ Tekton pipeline을 사용하여 Nexus repository에 존재하는 artifact (jar �
                 <repository>
                         <id>nexus-repo</id>
                         <name>nexus-repo</name>
-                        <url>http://192.168.9.194:32001/repository/test-hosted/</url>
+                        <url>http://{NEXUS_URL}/repository/{NEXUS_REPOSITORY_NAME}/</url>
                 </repository>
         </distributionManagement>
         ```
@@ -50,20 +50,22 @@ Tekton pipeline을 사용하여 Nexus repository에 존재하는 artifact (jar �
           <servers>
             <server>
               <id>nexus-repo</id>
-              <username>admin</username>
-              <password>admin</password>
+              <username>{ID}</username>
+              <password>{PASSWORD}</password>
             </server>
           </servers>
         </settings>
         ```
-3. Nexus webhook 설정 확인
-    - Nexus 접속 페이지에서 webhook이 등록되어있는지 확인
+3. Nexus webhook 생성
+    - Nexus 접속 페이지에서 webhook 생성
     
         ![image](/figure/nexus_page.png)
-    - 해당 webhook 클릭 후 settings 확인 (repository 이름, component, URl 확인)
-
+        
+        ![image](/figure/nexus_webhook_1.png)
+        
+        **{PATH} 는 /ingress/nexus-ingress.yaml 의 {PATH} 와 동일해야 합니다.**
+        <br></br>
         ![image](/figure/nexus_webhook.png)
-
 
 ## 테스트 과정
 1. apply pv/pvc, role/rolebinding, serviceaccount, ingress
