@@ -57,13 +57,14 @@ Tekton pipeline을 사용하여 Nexus repository에 존재하는 artifact (jar �
         </settings>
         ```
 3. Nexus webhook 생성
+
     - Nexus 접속 페이지에서 webhook 생성
     
         ![image](/figure/nexus_page.png)
         
         ![image](/figure/nexus_webhook_1.png)
         
-        **{PATH} 는 /ingress/nexus-ingress.yaml 의 {PATH} 와 동일해야 합니다.**
+        **{PATH} 는 /ingress/ingress-nexusdeploy.yaml 의 {PATH} 와 동일해야 합니다.**
         <br></br>
         ![image](/figure/nexus_webhook.png)
 
@@ -108,7 +109,7 @@ Tekton pipeline을 사용하여 Nexus repository에 존재하는 artifact (jar �
     ![image](/figure/kubectl_pod_before_deploy.png)
 
 2. Spring 소스코드 mvn deploy 진행
-    - Nexus repository 에서 deploy 확인 (http://192.168.9.194:32001/#browse/browse:test-hosted)
+    - Nexus repository 에서 deploy 확인 (http://{NEXUS_URL}/#browse/browse:{REPOSITORY_NAME})
 
 3. Pipeline run 동작 확인
 
@@ -124,6 +125,6 @@ Tekton pipeline을 사용하여 Nexus repository에 존재하는 artifact (jar �
 
         ![image](/figure/kubectl_get_svc.png)
 
-    - 웹에서 192.168.9.194:{nodeport}/echo/hello 로 접속
+    - 웹에서 {IP_ADDRESS}:{nodeport}/echo/hello 로 접속
 
         ![image](/figure/result.png)
